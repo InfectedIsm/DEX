@@ -1,15 +1,13 @@
 //SPDX-License-Identifier: UNLICENSED
 
-pragma solidity 0.8.15;
+pragma solidity >=0.8.15;
 //Below solidity pragma statement (needed because we return an array of struct in function):
-pragma experimental ABIEncoderV2;
+pragma abicoder v2;
 
 import '@openzeppelin/contracts/token/ERC20/IERC20.sol';
 
 
 contract Dex {
-
-    //this keyword tells the library to replace the arguments type of the function buy the ones we specify if needed
     
     address public admin; //admin address with privilege access to certain functions (shouldn't it be private?)
 
