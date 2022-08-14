@@ -15,6 +15,7 @@ contract('Dex', (accounts) => {
 
     let dai, bat, rep, zrx;
     const [trader1, trader2] = [accounts[1],accounts[2]];
+    let dex;
     
     //the map method takes each element of the array, and use it as a parameter for the function fromAscii
     const [DAI, BAT, REP, ZRX] = ['DAI', 'BAT', 'REP', 'ZRX']
@@ -27,8 +28,10 @@ contract('Dex', (accounts) => {
             Rep.new(),
             Zrx.new()           
         ]));
+
         //we do not use const keyword because it will be used in other functions
-        dex = await Dex.new()
+        dex = await Dex.new();
+
         await Promise.all([
             dex.addToken(DAI,dai.address),
             dex.addToken(BAT,bat.address),
@@ -37,6 +40,7 @@ contract('Dex', (accounts) => {
         ]);
 
         const amount = web3.utils.toWei('1000');
+
         const seedTokenBalance = async (token, trader) => {
             await token.faucet(trader, amount)
             await token.approve(
@@ -46,44 +50,41 @@ contract('Dex', (accounts) => {
             );
         };
 
-        await Promise.all(
-            [dai, bat, rep, zrx].map(
+        await seedTokenBalance(dai, trader1);
+        await seedTokenBalance(bat, trader1);
+        await seedTokenBalance(rep, trader1);
+        await seedTokenBalance(zrx, trader1);
 
-                token => seedTokenBalance(token, trader1)
-            )
-        )
-
-        await Promise.all(
-            [dai, bat, rep, zrx].map(
-
-                token => seedTokenBalance(token, trader2)
-            )
-        )
-        });
-
-        // Beginning of the tests  //
-        it('should deposit tokens', async () => {
-            const amount = web3.utils.toWei('100');
-            await dex.deposit(
-                amount,
-                DAI,
-                {from : trader1}
-            );
-            //parameters for a mapping are in the same order in j
-            //solidity : traderBalances[trader][ticker]
-            const balance = await dex.traderBalances(trader1,DAI);
-            assert(balance.toString() === amount);
-        });    
-        
-        it('should NOT deposit token if token does not exist', async () => {
-            const amount = web3.utils.toWei('100');
-            await expectRevert(
-                dex.deposit(
-                    amount,
-                    web3.utils.fromAscii("NON EXISTING TOKEN"),
-                    {from : trader1},
-                ),  
-                "this token does not exist"
-            );
-        });
+        await seedTokenBalance(dai, trader2);
+        await seedTokenBalance(bat, trader2);
+        await seedTokenBalance(rep, trader2);
+        await seedTokenBalance(zrx, trader2);
+      
     });
+
+    // Beginning of the tests  //
+    it('should deposit tokens', async () => {
+        const amount = web3.utils.toWei('100');
+        await dex.deposit(
+            amount,
+            DAI,
+            {from : trader1}
+        );
+        //parameters for a mapping are in the same order in j
+        //solidity : traderBalances[trader][ticker]
+        const balance = await dex.traderBalances(trader1,DAI);
+        assert(balance.toString() === amount);
+    });    
+        
+    it('should NOT deposit token if token does not exist', async () => {
+        const amount = web3.utils.toWei('100');
+        await expectRevert(
+            dex.deposit(
+                amount,
+                web3.utils.fromAscii("NON EXISTING TOKEN"),
+                {from : trader1},
+            ),  
+            "this token does not exist"
+        );
+    });
+});
